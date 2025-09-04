@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trade Journal Dashboard</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+    
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAbgvWpovuqlUZiu7C8ZPzL6tPHVtoLfSQ",
+      authDomain: "signup-and-login-86e79.firebaseapp.com",
+      projectId: "signup-and-login-86e79",
+      storageBucket: "signup-and-login-86e79.firebasestorage.app",
+      messagingSenderId: "896668700971",
+      appId: "1:896668700971:web:42003ca1fb62a88203b56e"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #0f0c1a;
+      --bg-secondary: #1a1528;
+      --bg-glass: rgba(24, 21, 32, 0.95);
+      --bg-glass-secondary: rgba(33, 26, 48, 0.90);
+      --border-color: rgba(180, 139, 246, 0.2);
+      --border-hover: rgba(180, 139, 246, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #c8b8ef;
+      --text-muted: rgba(200, 184, 239, 0.65);
+      --accent-color: #8b5cf6;
+      --accent-color-hover: #7c3aed;
+      --purple-color: #b48bf6;
+      --profit-color: #10b981;
+      --loss-color: #ef4444;
+      --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.15);
+      --shadow-soft: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    body { 
+      font-family: "Inter", sans-serif; 
+      background: linear-gradient(135deg, #0f0c1a 0%, #1a1528 50%, #0f0c1a 100%);
+      background-attachment: fixed;
+      color: var(--text-primary); 
+      min-height: 100vh;
+    }
+
+    /* --- Authentication Styles --- */
+    .auth-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #0f0c1a 0%, #1a1528 50%, #0f0c1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .auth-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .auth-wrapper {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: var(--shadow-subtle);
+      backdrop-filter: blur(20px);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-header img {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+
+    .auth-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--purple-color);
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .auth-form h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .auth-form .form-group {
+      margin-bottom: 20px;
+    }
+
+    .auth-form .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .auth-form .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(15, 12, 26, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+      font-family: inherit;
+    }
+
+    .auth-form .form-group input:focus {
+      outline: none;
+      border-color: var(--purple-color);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .auth-btn.primary {
+      background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
+      color: var(--text-primary);
+    }
+
+    .auth-btn.primary:hover {
+      background: linear-gradient(135deg, var(--accent-color-hover), #6d28d9);
+      transform: translateY(-1px);
+    }
+
+    .auth-btn.secondary {
+      background: var(--bg-glass-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .auth-btn.secondary:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: var(--purple-color);
+    }
+
+    .auth-switch {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--purple-color);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: inherit;
+    }
+
+    .link-btn:hover {
+      color: var(--accent-color-hover);
+    }
+
+    .auth-loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(180, 139, 246, 0.3);
+      border-top: 3px solid var(--purple-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .auth-loading p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* User Menu in Header */
+    .user-menu {
+      position: relative;
+      display: inline-block;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      border: 2px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .user-avatar:hover {
+      border-color: var(--purple-color);
+      transform: scale(1.05);
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 8px 0;
+      min-width: 180px;
+      box-shadow: var(--shadow-subtle);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+    }
+
+    .user-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .user-dropdown-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+      color: var(--text-primary);
+    }
+
+    .user-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 8px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .dashboard-container { 
+      display: flex; 
+      min-height: 100vh; 
+    }
+
+    /* --- Sidebar --- */
+    .sidebar { 
+      width: 240px; 
+      background: var(--bg-glass);
+      border-right: 1px solid var(--border-color); 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      transition: transform 0.2s ease;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      z-index: 100;
+    }
+
+    .sidebar-header { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      margin-bottom: 32px; 
+    }
+
+    .sidebar-header img { 
+      height: 36px; 
+      width: 36px; 
+    }
+
+    .sidebar-header h1 { 
+      font-size: 16px; 
+      font-weight: 700; 
+      color: var(--purple-color);
+    }
+
+    .sidebar nav { 
+      flex-grow: 1; 
+    }
+
+    .nav-list { 
+      list-style: none; 
+    }
+
+    .nav-item { 
+      margin-bottom: 6px; 
+    }
+
+    .nav-link { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      padding: 14px 16px; 
+      border-radius: 12px; 
+      text-decoration: none; 
+      color: var(--text-secondary); 
+      font-weight: 500; 
+      transition: all 0.2s ease;
+      background: rgba(33, 26, 48, 0.4);
+      border: 1px solid transparent;
+      font-size: 14px;
+    }
+
+    .nav-link:hover { 
+      background: rgba(139, 92, 246, 0.15); 
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+
+    .nav-link.active { 
+      background: rgba(139, 92, 246, 0.25); 
+      color: var(--purple-color);
+      border-color: var(--purple-color);
+    }
+
+    .nav-link svg { 
+      width: 18px; 
+      height: 18px; 
+      flex-shrink: 0;
+    }
+
+    /* --- Main Content --- */
+    .main-content { 
+      flex-grow: 1; 
+      overflow-y: auto; 
+      padding: 24px;
+      background: transparent;
+    }
+
+    .main-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 24px; 
+    }
+
+    .main-header h2 { 
+      font-size: 20px; 
+      font-weight: 700;
+      color: var(--purple-color);
+    }
+
+    .header-actions { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+    }
+
+    .hamburger-menu { 
+      display: none; 
+      cursor: pointer; 
+      background: var(--bg-glass-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .hamburger-menu:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--purple-color);
+    }
+
+    .hamburger-menu svg { 
+      width: 20px; 
+      height: 20px; 
+      fill: var(--text-primary); 
+    }
+
+    /* --- Stats Section --- */
+    .stat-glass-container {
+      background: var(--bg-glass);
+      border-radius: 20px;
+      box-shadow: var(--shadow-subtle);
+      padding: 1.5rem;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .stats-settings-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--bg-glass-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .stats-settings-btn:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--purple-color);
+    }
+
+    .stats-settings-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--text-secondary);
+      transition: fill 0.2s ease;
+    }
+
+    .stats-settings-btn:hover svg {
+      fill: var(--purple-color);
+    }
+
+    .stat-glass-row { 
+      display: flex; 
+      flex-direction: column;
+      gap: 1.2rem; 
+      width: 100%;
+    }
+
+    .stat-glass-col { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1rem;
+    }
+
+    .stat-label { 
+      font-weight: 600; 
+      font-size: 0.85em; 
+      letter-spacing: 0.04em; 
+      color: var(--text-secondary);
+      margin-bottom: 0.2em; 
+      text-transform: uppercase;
+    }
+
+    .stat-value { 
+      font-size: 1.8em; 
+      font-weight: 800; 
+      color: #fff; 
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 0.3em;
+    }
+
+    .stat-value.neon { 
+      color: var(--purple-color);
+    }
+
+    .stat-linechart { 
+      background: transparent; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .stat-linechart canvas { 
+      max-width: 100%; 
+      height: 80px;
+    }
+
+    .stat-subrow { 
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem; 
+      margin-top: 0.3rem; 
+      width: 100%; 
+    }
+
+    .stat-mini-col {
+      background: var(--bg-glass-secondary); 
+      border-radius: 10px; 
+      height: 50px;
+      width: 100%; 
+      max-height: 50px;
+      min-height: 50px;
+      padding: 0.3rem 0.2rem; 
+      box-shadow: var(--shadow-soft);
+      display: flex; 
+      flex-direction: row;
+      align-items: center; 
+      justify-content: space-between;
+      position: relative;
+      border: 1px solid rgba(180, 139, 246, 0.1);
+      overflow: hidden;
+    }
+
+    .stat-ring { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      height: 28px;
+      width: 28px;
+      flex-shrink: 0;
+    }
+
+    .stat-ring canvas { 
+      width: 28px !important; 
+      height: 28px !important;
+      max-width: 28px; 
+      max-height: 28px;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .stat-subtitle { 
+      font-size: 0.6em; 
+      margin: 0;
+      color: var(--purple-color); 
+      font-weight: 600; 
+      letter-spacing: 0.02em; 
+      text-align: center;
+      opacity: 0.9;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-mini-col small { 
+      font-size: 0.5em; 
+      color: var(--text-secondary); 
+      opacity: 0.6; 
+      text-align: center;
+      margin: 0;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-bar { 
+      width: 32px; 
+      height: 16px; 
+      flex-shrink: 0;
+    }
+
+    /* --- Stats Grid --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px 16px;
+      box-shadow: var(--shadow-soft);
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-subtle);
+      border-color: var(--border-hover);
+    }
+
+    .stat-card-label { 
+      font-size: 12px; 
+      color: var(--text-secondary); 
+      margin-bottom: 8px; 
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-card-value { 
+      font-size: 22px; 
+      font-weight: 800; 
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .stat-card-value.profit { 
+      color: var(--profit-color);
+    }
+
+    .stat-card-value.loss { 
+      color: var(--loss-color);
+    }
+
+    .stat-card-value.accent { 
+      color: var(--purple-color);
+    }
+
+    /* --- Content Sections --- */
+    .data-section { 
+      display: grid; 
+      grid-template-columns: 1fr; 
+      gap: 24px;
+    }
+
+    .content-box { 
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color); 
+      border-radius: 20px; 
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      transition: all 0.2s ease;
+    }
+
+    .content-box:hover {
+      box-shadow: var(--shadow-subtle);
+      border-color: var(--border-hover);
+    }
+
+    .content-box-header { 
+      font-size: 18px; 
+      font-weight: 700; 
+      margin-bottom: 20px;
+      color: var(--purple-color);
+    }
+
+    .chart-container { 
+      height: 280px;
+      background: rgba(15, 12, 26, 0.5);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    /* --- Horizontal Recent Trades Table --- */
+    .recent-trades-container {
+      background: var(--bg-glass);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .recent-trades-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--purple-color);
+      margin-bottom: 24px;
+    }
+
+    .horizontal-trades-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+    }
+
+    .horizontal-trades-table thead tr {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .horizontal-trades-table thead th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 16px 12px;
+      text-align: left;
+      letter-spacing: 0.05em;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .horizontal-trades-table tbody tr {
+      color: var(--text-primary);
+      border-bottom: 1px solid rgba(180, 139, 246, 0.1);
+      transition: background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .horizontal-trades-table tbody tr:hover {
+      background: var(--bg-glass-secondary);
+    }
+
+    .horizontal-trades-table tbody tr.expanded {
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .horizontal-trades-table tbody td {
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 500;
+      vertical-align: middle;
+    }
+
+    .horizontal-trades-table tbody tr td:nth-child(1) {
+      color: var(--text-muted);
+      font-weight: 400;
+      width: 20%;
+    }
+
+    .horizontal-trades-table tbody tr td:nth-child(2) {
+      color: var(--text-primary);
+      font-weight: 700;
+      width: 15%;
+    }
+
+    .horizontal-trades-table tbody tr td:nth-child(3) {
+      font-weight: 700;
+      width: 20%;
+    }
+
+    .horizontal-trades-table tbody tr td:nth-child(4) {
+      color: var(--text-secondary);
+      font-weight: 500;
+      width: 20%;
+    }
+
+    .horizontal-trades-table tbody tr td:nth-child(5) {
+      font-weight: 700;
+      width: 15%;
+    }
+
+    .profit-value {
+      color: var(--profit-color) !important;
+    }
+
+    .loss-value {
+      color: var(--loss-color) !important;
+    }
+
+    .trade-symbol-horizontal {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .expand-indicator-horizontal {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .horizontal-trades-table tbody tr.expanded .expand-indicator-horizontal {
+      transform: rotate(180deg);
+    }
+
+    .trade-description-row-horizontal {
+      display: none;
+      background: rgba(15, 12, 26, 0.8);
+      border-bottom: 1px solid rgba(180, 139, 246, 0.1);
+    }
+
+    .horizontal-trades-table tbody tr.expanded + .trade-description-row-horizontal {
+      display: table-row;
+      animation: fadeInUp 0.3s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { 
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .trade-description-cell-horizontal {
+      padding: 24px 12px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border: none;
+    }
+
+    .trade-details-horizontal {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .trade-detail-item-horizontal {
+      background: rgba(139, 92, 246, 0.1);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(180, 139, 246, 0.2);
+    }
+
+    .trade-detail-label-horizontal {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--purple-color);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .trade-detail-value-horizontal {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .trade-notes-horizontal {
+      background: rgba(15, 12, 26, 0.5);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(180, 139, 246, 0.1);
+      font-style: italic;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .empty-trades-horizontal {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 1.1rem;
+    }
+
+    /* --- Modal Styles --- */
+    .settings-modal { 
+      display: none; 
+      position: fixed; 
+      inset: 0; 
+      background-color: rgba(0, 0, 0, 0.85); 
+      z-index: 1000; 
+      justify-content: center; 
+      align-items: center;
+      padding: 20px;
+    }
+
+    .settings-modal.show { 
+      display: flex;
+    }
+
+    .settings-content { 
+      background: var(--bg-glass);
+      border: 1px solid var(--border-hover); 
+      border-radius: 20px; 
+      padding: 32px 24px; 
+      width: 100%; 
+      max-width: 450px;
+      box-shadow: var(--shadow-subtle);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .settings-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 24px;
+    }
+
+    .settings-header h3 { 
+      font-size: 20px; 
+      font-weight: 700;
+      color: var(--purple-color);
+    }
+
+    .close-btn { 
+      background: none; 
+      border: none; 
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .close-btn svg { 
+      width: 20px; 
+      height: 20px; 
+      fill: var(--text-secondary);
+    }
+
+    .close-btn:hover svg {
+      fill: var(--loss-color);
+    }
+
+    .form-group { 
+      margin-bottom: 18px;
+    }
+
+    .form-group label { 
+      display: block; 
+      font-size: 13px; 
+      font-weight: 600; 
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; 
+      padding: 12px 14px; 
+      background: rgba(15, 12, 26, 0.6);
+      border: 1px solid var(--border-color); 
+      border-radius: 12px; 
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--purple-color);
+    }
+
+    .form-row { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 16px;
+    }
+
+    .form-row-triple {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .save-btn { 
+      width: 100%; 
+      padding: 14px; 
+      background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)); 
+      border: none; 
+      border-radius: 12px; 
+      color: var(--text-primary); 
+      font-weight: 700; 
+      font-size: 14px;
+      cursor: pointer; 
+      margin-top: 20px; 
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .save-btn:hover { 
+      background: linear-gradient(135deg, var(--accent-color-hover), #6d28d9);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .loading-state {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .loading-state.show {
+      display: block;
+    }
+
+    .trade-form-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .trade-form-modal.show {
+      display: flex;
+    }
+
+    .add-trade-btn {
+      background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .add-trade-btn:hover {
+      background: linear-gradient(135deg, var(--accent-color-hover), #6d28d9);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .pnl-indicator {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .trade-form-content {
+      max-width: 550px;
+    }
+
+    /* --- Mobile Responsive --- */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        flex-direction: column;
+      }
+
+      .sidebar { 
+        position: fixed; 
+        left: 0; 
+        top: 0; 
+        height: 100vh; 
+        width: 280px;
+        transform: translateX(-100%); 
+        z-index: 200; 
+        padding: 20px;
+      }
+      
+      .sidebar.open { 
+        transform: translateX(0); 
+      }
+      
+      .hamburger-menu { 
+        display: block; 
+      }
+      
+      .main-content { 
+        padding: 16px;
+        width: 100%;
+      }
+
+      .main-header {
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .main-header h2 {
+        font-size: 18px;
+      }
+
+      .stat-glass-container {
+        margin: 0 0 20px 0;
+        padding: 1.2rem;
+        border-radius: 16px;
+      }
+
+      .stat-glass-row {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .stat-linechart {
+        order: -1;
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+
+      .stat-mini-col {
+        height: 45px;
+        max-height: 45px;
+        min-height: 45px;
+        padding: 0.25rem 0.15rem;
+      }
+      
+      .stat-ring {
+        height: 24px;
+        width: 24px;
+      }
+      
+      .stat-ring canvas {
+        width: 24px !important;
+        height: 24px !important;
+        max-width: 24px;
+        max-height: 24px;
+      }
+      
+      .stat-bar {
+        width: 28px;
+        height: 14px;
+      }
+      
+      .stat-subtitle {
+        font-size: 0.55em;
+      }
+      
+      .stat-mini-col small {
+        font-size: 0.45em;
+      }
+      
+      .stat-subrow {
+        gap: 0.5rem;
+      }
+
+      .stat-value {
+        font-size: 1.5em;
+      }
+
+      .stats-grid { 
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      
+      .stat-card { 
+        padding: 16px 12px; 
+      }
+
+      .stat-card-value {
+        font-size: 18px;
+      }
+
+      .content-box {
+        padding: 20px 16px;
+      }
+
+      .chart-container {
+        height: 240px;
+        padding: 12px;
+      }
+
+      .recent-trades-container {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .recent-trades-header {
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+      }
+      
+      .horizontal-trades-table thead { 
+        display: none; 
+      }
+      
+      .horizontal-trades-table tbody tr { 
+        display: block; 
+        margin-bottom: 16px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+        padding: 16px;
+        background: var(--bg-glass-secondary);
+      }
+      
+      .horizontal-trades-table tbody tr.trade-description-row-horizontal {
+        display: none;
+        margin-bottom: 16px;
+        background: rgba(15, 12, 26, 0.8);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: -12px;
+        border: 1px solid rgba(180, 139, 246, 0.1);
+      }
+
+      .horizontal-trades-table tbody tr.expanded + .trade-description-row-horizontal {
+        display: block !important;
+      }
+      
+      .horizontal-trades-table tbody td { 
+        display: flex; 
+        justify-content: space-between; 
+        padding: 10px 0; 
+        border-bottom: 1px solid rgba(180, 139, 246, 0.08);
+        font-size: 14px;
+        color: var(--text-primary);
+        width: 100%;
+      }
+      
+      .horizontal-trades-table tbody td:last-child { 
+        border-bottom: none; 
+      }
+      
+      .horizontal-trades-table tbody td::before { 
+        content: attr(data-label); 
+        font-weight: 600; 
+        color: var(--purple-color);
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+      }
+
+      .trade-details-horizontal {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-content {
+        padding: 24px 20px;
+        margin: 20px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .form-row-triple {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .auth-wrapper {
+        padding: 16px;
+      }
+      
+      .auth-card {
+        padding: 32px 24px;
+        border-radius: 20px;
+      }
+      
+      .auth-header img {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .auth-header h1 {
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-content {
+        padding: 12px;
+      }
+
+      .stat-glass-container {
+        padding: 1rem;
+        width: calc(100vw - 24px);
+      }
+
+      .stat-mini-col {
+        height: 42px;
+        max-height: 42px;
+        min-height: 42px;
+        padding: 0.2rem 0.1rem;
+      }
+      
+      .stat-ring {
+        height: 22px;
+        width: 22px;
+      }
+      
+      .stat-ring canvas {
+        width: 22px !important;
+        height: 22px !important;
+      }
+      
+      .stat-bar {
+        width: 26px;
+        height: 12px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-box {
+        padding: 16px 12px;
+      }
+
+      .chart-container {
+        height: 200px;
+        padding: 8px;
+      }
+
+      .settings-content {
+        margin: 10px;
+        padding: 20px 16px;
+      }
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 150;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar-overlay.show {
+        display: block;
+      }
+    }
+
+    .stat-card:hover {
+      transform: translate3d(0, -2px, 0);
+    }
+
+    .save-btn:hover, .add-trade-btn:hover {
+      transform: translate3d(0, -1px, 0);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login/Signup Page -->
+  <div class="auth-container" id="authContainer">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23b48bf6'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-size='24' fill='white' font-weight='bold'%3ETJ%3C/text%3E%3C/svg%3E" alt="Logo" />
+          <h1>Trade Journal</h1>
+          <p>Track your trading journey with precision</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="auth-form" id="loginForm">
+          <h2>Welcome Back</h2>
+          <form id="loginFormElement">
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" required placeholder="Enter your email" />
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required placeholder="Enter your password" />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="auth-btn primary">Sign In</button>
+              <button type="button" class="auth-btn secondary" id="googleSignInBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </button>
+            </div>
+            <p class="auth-switch">
+              Don't have an account? 
+              <button type="button" id="showSignup" class="link-btn">Sign up here</button>
+            </p>
+          </form>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="auth-form hidden" id="signupForm">
+          <h2>Create Account</h2>
+          <form id="signupFormElement">
+            <div class="form-group">
+              <label for="signupName">Full Name</label>
+              <input type="text" id="signupName" required placeholder="Enter your full name" />
+            </div>
+            <div class="form-group">
+              <label for="signupEmail">Email</label>
+              <input type="email" id="signupEmail" required placeholder="Enter your email" />
+            </div>
+            <div class="form-group">
+              <label for="signupPassword">Password</label>
+              <input type="password" id="signupPassword" required placeholder="Create a password" minlength="6" />
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" id="confirmPassword" required placeholder="Confirm your password" minlength="6" />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="auth-btn primary">Create Account</button>
+              <button type="button" class="auth-btn secondary" id="googleSignUpBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </button>
+            </div>
+            <p class="auth-switch">
+              Already have an account? 
+              <button type="button" id="showLogin" class="link-btn">Sign in here</button>
+            </p>
+          </form>
+        </div>
+
+        <!-- Loading State -->
+        <div class="auth-loading hidden" id="authLoading">
+          <div class="spinner"></div>
+          <p>Authenticating...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23b48bf6'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-size='24' fill='white' font-weight='bold'%3ETJ%3C/text%3E%3C/svg%3E" alt="Logo" />
+        <h1>Trade Journal</h1>
+      </div>
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link active">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
+                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="addTradeNav">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"></path>
+              </svg>
+              <span>Add Trade</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="exportBtn">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h5a1 1 0 000-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM13 16a1 1 0 102 0v-5.586l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 101.414 1.414L13 10.414V16z"></path>
+              </svg>
+              <span>Export CSV</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="main-header">
+        <button class="hamburger-menu" id="hamburgerMenu">
+          <svg viewBox="0 0 24 24">
+            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+          </svg>
+        </button>
+        <h2>Dashboard</h2>
+        <div class="header-actions">
+          <button class="add-trade-btn" id="addTradeBtn">Add Trade</button>
+        </div>
+      </header>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loadingState">
+        <p>Loading dashboard data...</p>
+      </div>
+
+      <!-- Stats Section with Settings -->
+      <section>
+        <div class="stat-glass-container">
+          <button class="stats-settings-btn" id="settingsBtn">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </button>
+
+          <div class="stat-glass-row">
+            <div class="stat-glass-col">
+              <div>
+                <div class="stat-label" id="stat-label1">Win Rate</div>
+                <div class="stat-value neon" id="stat-percentage">0%</div>
+              </div>
+              <div>
+                <div class="stat-label" id="stat-label2">Success</div>
+                <div class="stat-value" id="stat-conversion">0%</div>
+              </div>
+              <div>
+                <div class="stat-label" id="stat-label3">Revenue</div>
+                <div class="stat-value neon" id="stat-revenue">₹0</div>
+              </div>
+            </div>
+            <div class="stat-linechart"><canvas id="stat-line-chart"></canvas></div>
+          </div>
+          <div class="stat-subrow">
+            <div class="stat-mini-col">
+              <div class="stat-ring"><canvas id="stat-ring-chart"></canvas></div>
+              <div class="stat-content">
+                <div class="stat-subtitle" id="ring-title">PROFIT</div>
+                <small id="ring-desc">MONTH</small>
+              </div>
+            </div>
+            <div class="stat-mini-col">
+              <div class="stat-content">
+                <div class="stat-subtitle" id="bar-title">ACTIVITY</div>
+                <small>WEEKLY</small>
+              </div>
+              <canvas class="stat-bar" id="stat-mini-bar"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Total P&L</div>
+          <div class="stat-card-value" id="totalPnl">₹0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Current Balance</div>
+          <div class="stat-card-value" id="currentBalance">₹0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Win Rate</div>
+          <div class="stat-card-value accent" id="winRate">0%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Total Trades</div>
+          <div class="stat-card-value" id="totalTrades">0</div>
+        </div>
+      </section>
+
+      <!-- Chart & Horizontal Recent Trades -->
+      <section class="data-section">
+        <div class="content-box">
+          <h3 class="content-box-header">Performance</h3>
+          <div class="chart-container">
+            <canvas id="performanceChart"></canvas>
+          </div>
+        </div>
+        <div class="content-box">
+          <div class="recent-trades-container">
+            <h3 class="recent-trades-header">Recent Trades</h3>
+            <div id="recentTrades">
+              <table class="horizontal-trades-table" id="recentTradesTable">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Symbol</th>
+                    <th>P&L</th>
+                    <th>Win Rate</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTradesTableBody"></tbody>
+              </table>
+              <div class="empty-trades-horizontal" id="emptyTradesState">No trades recorded yet. Start by adding your first trade!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h3>Journal Settings</h3>
+        <button class="close-btn" id="closeSettingsBtn">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <form id="settingsForm">
+        <div class="form-group">
+          <label for="initialCapital">Initial Capital</label>
+          <input type="number" id="initialCapital" name="initialCapital" placeholder="100000" min="0" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" name="startDate" required />
+          </div>
+          <div class="form-group">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency">
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="save-btn">Save Settings</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Trade Modal -->
+  <div class="trade-form-modal" id="tradeFormModal">
+    <div class="settings-content trade-form-content">
+      <div class="settings-header">
+        <h3>Add New Trade</h3>
+        <button class="close-btn" id="closeTradeFormBtn">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <form id="tradeForm">
+        <div class="form-group">
+          <label for="tradeDate">Date</label>
+          <input type="date" id="tradeDate" name="date" required />
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tradeSymbol">Symbol</label>
+            <input type="text" id="tradeSymbol" name="symbol" placeholder="e.g., AAPL, RELIANCE" required />
+          </div>
+          <div class="form-group">
+            <label for="tradeType">Type</label>
+            <select id="tradeType" name="type" required>
+              <option value="">Select Type</option>
+              <option value="Long">Long</option>
+              <option value="Short">Short</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-triple">
+          <div class="form-group">
+            <label for="tradeQuantity">Quantity</label>
+            <input type="number" id="tradeQuantity" name="quantity" min="1" required />
+          </div>
+          <div class="form-group">
+            <label for="entryPrice">Entry Price</label>
+            <input type="number" id="entryPrice" name="entryPrice" step="0.01" min="0" required />
+          </div>
+          <div class="form-group">
+            <label for="exitPrice">Exit Price</label>
+            <input type="number" id="exitPrice" name="exitPrice" step="0.01" min="0" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="stopLoss">Stop Loss</label>
+            <input type="number" id="stopLoss" name="stopLoss" step="0.01" min="0" placeholder="Optional" />
+          </div>
+          <div class="form-group">
+            <label for="takeProfit">Take Profit</label>
+            <input type="number" id="takeProfit" name="takeProfit" step="0.01" min="0" placeholder="Optional" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tradePnl">P&L</label>
+          <input type="number" id="tradePnl" name="pnl" step="0.01" readonly />
+          <div class="pnl-indicator">P&L will be calculated automatically based on entry/exit prices</div>
+        </div>
+
+        <div class="form-group">
+          <label for="tradeStrategy">Strategy / Notes</label>
+          <textarea id="tradeStrategy" name="strategy" placeholder="Describe your trading strategy, analysis, or any notes about this trade..." rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="save-btn">Add Trade</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Configuration - Replace with your actual config
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-project.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project.appspot.com",
+      messagingSenderId: "your-sender-id",
+      appId: "your-app-id"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Global state
+    let currentUser = null;
+    let trades = [];
+
+    // Global configuration
+    const CONFIG = {
+      currency: '₹',
+      initialCapital: 100000,
+      dateFormat: 'en-IN'
+    };
+
+    // Chart instances
+    let performanceChartInstance = null;
+    let statLineChart = null;
+    let statRingChart = null;
+    let statBarChart = null;
+
+    // DOM elements for authentication
+    const authElements = {
+      authContainer: document.getElementById("authContainer"),
+      loginForm: document.getElementById("loginForm"),
+      signupForm: document.getElementById("signupForm"),
+      authLoading: document.getElementById("authLoading"),
+      showSignup: document.getElementById("showSignup"),
+      showLogin: document.getElementById("showLogin"),
+      loginFormElement: document.getElementById("loginFormElement"),
+      signupFormElement: document.getElementById("signupFormElement"),
+      googleSignInBtn: document.getElementById("googleSignInBtn"),
+      googleSignUpBtn: document.getElementById("googleSignUpBtn")
+    };
+
+    // DOM elements
+    const elements = {
+      totalPnl: document.getElementById("totalPnl"),
+      currentBalance: document.getElementById("currentBalance"),
+      winRate: document.getElementById("winRate"),
+      totalTrades: document.getElementById("totalTrades"),
+      recentTradesTableBody: document.getElementById("recentTradesTableBody"),
+      emptyTradesState: document.getElementById("emptyTradesState"),
+      settingsModal: document.getElementById("settingsModal"),
+      sidebar: document.getElementById("sidebar"),
+      sidebarOverlay: document.getElementById("sidebarOverlay"),
+      loadingState: document.getElementById("loadingState"),
+      tradeFormModal: document.getElementById("tradeFormModal"),
+      statPercentage: document.getElementById("stat-percentage"),
+      statConversion: document.getElementById("stat-conversion"),
+      statRevenue: document.getElementById("stat-revenue"),
+      ringTitle: document.getElementById("ring-title"),
+      ringDesc: document.getElementById("ring-desc"),
+      entryPrice: document.getElementById("entryPrice"),
+      exitPrice: document.getElementById("exitPrice"),
+      tradeQuantity: document.getElementById("tradeQuantity"),
+      tradeType: document.getElementById("tradeType")
+    };
+
+    // Authentication functions
+    class AuthManager {
+      static async signUp(email, password, name) {
+        try {
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          const user = userCredential.user;
+          
+          await user.updateProfile({
+            displayName: name
+          });
+          
+          await db.collection('users').doc(user.uid).set({
+            name: name,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            settings: {
+              initialCapital: 100000,
+              currency: 'INR',
+              startDate: new Date().toISOString().split('T')[0]
+            }
+          });
+          
+          return user;
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async signIn(email, password) {
+        try {
+          const userCredential = await auth.signInWithEmailAndPassword(email, password);
+          return userCredential.user;
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async signInWithGoogle() {
+        try {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          const result = await auth.signInWithPopup(provider);
+          const user = result.user;
+          
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          if (!userDoc.exists) {
+            await db.collection('users').doc(user.uid).set({
+              name: user.displayName,
+              email: user.email,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              settings: {
+                initialCapital: 100000,
+                currency: 'INR',
+                startDate: new Date().toISOString().split('T')[0]
+              }
+            });
+          }
+          
+          return user;
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async signOut() {
+        try {
+          await auth.signOut();
+        } catch (error) {
+          throw error;
+        }
+      }
+    }
+
+    // Database functions
+    class DatabaseManager {
+      static async saveTrade(trade) {
+        if (!currentUser) throw new Error('User not authenticated');
+        
+        try {
+          const docRef = await db.collection('trades').add({
+            ...trade,
+            userId: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          return docRef.id;
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async loadTrades() {
+        if (!currentUser) throw new Error('User not authenticated');
+        
+        try {
+          const snapshot = await db.collection('trades')
+            .where('userId', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc')
+            .get();
+          
+          const trades = [];
+          snapshot.forEach(doc => {
+            trades.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+          
+          return trades;
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async updateUserSettings(settings) {
+        if (!currentUser) throw new Error('User not authenticated');
+        
+        try {
+          await db.collection('users').doc(currentUser.uid).update({
+            settings: settings
+          });
+        } catch (error) {
+          throw error;
+        }
+      }
+      
+      static async getUserSettings() {
+        if (!currentUser) throw new Error('User not authenticated');
+        
+        try {
+          const doc = await db.collection('users').doc(currentUser.uid).get();
+          if (doc.exists) {
+            return doc.data().settings || {};
+          }
+          return {};
+        } catch (error) {
+          throw error;
+        }
+      }
+    }
+
+    // UI Management
+    class UIManager {
+      static showAuthPage() {
+        authElements.authContainer.classList.remove('hidden');
+        document.querySelector('.dashboard-container').style.display = 'none';
+      }
+      
+      static hideAuthPage() {
+        authElements.authContainer.classList.add('hidden');
+        document.querySelector('.dashboard-container').style.display = 'flex';
+      }
+      
+      static showLoginForm() {
+        authElements.loginForm.classList.remove('hidden');
+        authElements.signupForm.classList.add('hidden');
+        authElements.authLoading.classList.add('hidden');
+      }
+      
+      static showSignupForm() {
+        authElements.signupForm.classList.remove('hidden');
+        authElements.loginForm.classList.add('hidden');
+        authElements.authLoading.classList.add('hidden');
+      }
+      
+      static showLoading() {
+        authElements.authLoading.classList.remove('hidden');
+        authElements.loginForm.classList.add('hidden');
+        authElements.signupForm.classList.add('hidden');
+      }
+      
+      static showError(message) {
+        alert(message);
+      }
+      
+      static addUserMenu() {
+        const headerActions = document.querySelector('.header-actions');
+        const existingUserMenu = document.querySelector('.user-menu');
+        if (existingUserMenu) {
+          existingUserMenu.remove();
+        }
+        
+        const userMenu = document.createElement('div');
+        userMenu.className = 'user-menu';
+        userMenu.innerHTML = `
+          <div class="user-avatar" id="userAvatar">
+            ${currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-info">
+              <div class="user-name">${currentUser.displayName || 'User'}</div>
+              <div class="user-email">${currentUser.email}</div>
+            </div>
+            <button class="user-dropdown-item" id="signOutBtn">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
+              </svg>
+              Sign Out
+            </button>
+          </div>
+        `;
+        
+        headerActions.appendChild(userMenu);
+        
+        document.getElementById('userAvatar').addEventListener('click', () => {
+          document.getElementById('userDropdown').classList.toggle('show');
+        });
+        
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+          AuthManager.signOut();
+        });
+        
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.user-menu')) {
+            document.getElementById('userDropdown').classList.remove('show');
+          }
+        });
+      }
+    }
+
+    // Authentication event listeners
+    if (authElements.showSignup) {
+      authElements.showSignup.addEventListener('click', () => UIManager.showSignupForm());
+    }
+
+    if (authElements.showLogin) {
+      authElements.showLogin.addEventListener('click', () => UIManager.showLoginForm());
+    }
+
+    if (authElements.loginFormElement) {
+      authElements.loginFormElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        UIManager.showLoading();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        try {
+          await AuthManager.signIn(email, password);
+        } catch (error) {
+          UIManager.showLoginForm();
+          UIManager.showError(error.message);
+        }
+      });
+    }
+
+    if (authElements.signupFormElement) {
+      authElements.signupFormElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        UIManager.showLoading();
+        
+        const name = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+          UIManager.showSignupForm();
+          UIManager.showError('Passwords do not match');
+          return;
+        }
+        
+        try {
+          await AuthManager.signUp(email, password, name);
+        } catch (error) {
+          UIManager.showSignupForm();
+          UIManager.showError(error.message);
+        }
+      });
+    }
+
+    if (authElements.googleSignInBtn) {
+      authElements.googleSignInBtn.addEventListener('click', async () => {
+        UIManager.showLoading();
+        try {
+          await AuthManager.signInWithGoogle();
+        } catch (error) {
+          UIManager.showLoginForm();
+          UIManager.showError(error.message);
+        }
+      });
+    }
+
+    if (authElements.googleSignUpBtn) {
+      authElements.googleSignUpBtn.addEventListener('click', async () => {
+        UIManager.showLoading();
+        try {
+          await AuthManager.signInWithGoogle();
+        } catch (error) {
+          UIManager.showSignupForm();
+          UIManager.showError(error.message);
+        }
+      });
+    }
+
+    // Firebase Auth state observer
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        UIManager.hideAuthPage();
+        UIManager.addUserMenu();
+        
+        try {
+          trades = await DatabaseManager.loadTrades();
+          const settings = await DatabaseManager.getUserSettings();
+          
+          Object.assign(CONFIG, settings);
+          
+          initializeDashboard();
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      } else {
+        currentUser = null;
+        UIManager.showAuthPage();
+        UIManager.showLoginForm();
+      }
+    });
+
+    // Modified trade saving function
+    async function saveTrade(tradeData) {
+      try {
+        const tradeId = await DatabaseManager.saveTrade(tradeData);
+        const savedTrade = { ...tradeData, id: tradeId };
+        trades.unshift(savedTrade);
+        updateDashboard();
+        return savedTrade;
+      } catch (error) {
+        console.error('Error saving trade:', error);
+        throw error;
+      }
+    }
+
+    // Modified settings saving function
+    async function saveSettings(settings) {
+      try {
+        await DatabaseManager.updateUserSettings(settings);
+        Object.assign(CONFIG, settings);
+        updateDashboard();
+      } catch (error) {
+        console.error('Error saving settings:', error);
+        throw error;
+      }
+    }
+
+    // Chart creation functions
+    function createStatCharts() {
+      // Line Chart
+      const lineCtx = document.getElementById("stat-line-chart");
+      if (lineCtx) {
+        if (statLineChart) {
+          statLineChart.destroy();
+        }
+        
+        const pnlData = trades.slice(0, 10).map(trade => trade.pnl).reverse();
+        
+        statLineChart = new Chart(lineCtx, {
+          type: "line",
+          data: {
+            labels: Array(pnlData.length).fill(""),
+            datasets: [{
+              data: pnlData,
+              borderColor: "#b48bf6",
+              backgroundColor: "rgba(180, 139, 246, 0.1)",
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { display: false }, y: { display: false } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Ring Chart (Doughnut)
+      const ringCtx = document.getElementById("stat-ring-chart");
+      if (ringCtx) {
+        if (statRingChart) {
+          statRingChart.destroy();
+        }
+        
+        const wins = trades.filter(trade => trade.pnl > 0).length;
+        const losses = trades.length - wins;
+        
+        statRingChart = new Chart(ringCtx, {
+          type: "doughnut",
+          data: {
+            datasets: [{
+              data: [wins, losses],
+              backgroundColor: ["#10b981", "#ef4444"],
+              borderWidth: 0,
+              cutout: "70%"
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Mini Bar Chart
+      const barCtx = document.getElementById("stat-mini-bar");
+      if (barCtx) {
+        if (statBarChart) {
+          statBarChart.destroy();
+        }
+        
+        const weeklyData = Array(7).fill(0);
+        trades.forEach(trade => {
+          const dayIndex = new Date(trade.date).getDay();
+          weeklyData[dayIndex]++;
+        });
+        
+        statBarChart = new Chart(barCtx, {
+          type: "bar",
+          data: {
+            labels: Array(7).fill(""),
+            datasets: [{
+              data: weeklyData,
+              backgroundColor: "#b48bf6",
+              borderRadius: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { display: false }, y: { display: false } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+    }
+
+    function createPerformanceChart() {
+      const ctx = document.getElementById("performanceChart");
+      if (!ctx) return;
+
+      if (performanceChartInstance) {
+        performanceChartInstance.destroy();
+      }
+
+      let cumulativePnL = CONFIG.initialCapital;
+      const chartData = [{ x: CONFIG.startDate, y: cumulativePnL }];
+
+      trades.reverse().forEach((trade) => {
+        cumulativePnL += trade.pnl;
+        chartData.push({ x: trade.date, y: cumulativePnL });
+      });
+
+      performanceChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          datasets: [{
+            label: "Portfolio Value",
+            data: chartData,
+            borderColor: "#b48bf6",
+            backgroundColor: "rgba(180, 139, 246, 0.1)",
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: "index" },
+          scales: {
+            x: {
+              type: "time",
+              time: { unit: "day" },
+              grid: { color: "rgba(180, 139, 246, 0.1)" },
+              ticks: { color: "#c8b8ef" }
+            },
+            y: {
+              grid: { color: "rgba(180, 139, 246, 0.1)" },
+              ticks: { 
+                color: "#c8b8ef",
+                callback: function(value) {
+                  return CONFIG.currency + value.toLocaleString();
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: "#c8b8ef" }
+            },
+            tooltip: {
+              backgroundColor: "rgba(24, 21, 32, 0.95)",
+              titleColor: "#b48bf6",
+              bodyColor: "#c8b8ef",
+              borderColor: "#b48bf6",
+              borderWidth: 1
+            }
+          }
+        });
+
+      trades.reverse();
+    }
+
+    // Statistics calculation
+    function calculateStats() {
+      if (trades.length === 0) {
+        return {
+          totalPnL: 0,
+          currentBalance: CONFIG.initialCapital,
+          winRate: 0,
+          totalTrades: 0,
+          wins: 0,
+          losses: 0
+        };
+      }
+
+      const totalPnL = trades.reduce((sum, trade) => sum + trade.pnl, 0);
+      const currentBalance = CONFIG.initialCapital + totalPnL;
+      const wins = trades.filter(trade => trade.pnl > 0).length;
+      const winRate = (wins / trades.length) * 100;
+
+      return {
+        totalPnL,
+        currentBalance,
+        winRate,
+        totalTrades: trades.length,
+        wins,
+        losses: trades.length - wins
+      };
+    }
+
+    // Update dashboard
+    function updateDashboard() {
+      const stats = calculateStats();
+      
+      // Update main stats
+      elements.totalPnl.textContent = `${CONFIG.currency}${stats.totalPnL.toLocaleString()}`;
+      elements.totalPnl.className = `stat-card-value ${stats.totalPnL >= 0 ? 'profit' : 'loss'}`;
+      
+      elements.currentBalance.textContent = `${CONFIG.currency}${stats.currentBalance.toLocaleString()}`;
+      elements.winRate.textContent = `${stats.winRate.toFixed(1)}%`;
+      elements.totalTrades.textContent = stats.totalTrades.toString();
+
+      // Update glass container stats
+      elements.statPercentage.textContent = `${stats.winRate.toFixed(1)}%`;
+      elements.statConversion.textContent = `${stats.winRate.toFixed(1)}%`;
+      elements.statRevenue.textContent = `${CONFIG.currency}${stats.totalPnL.toLocaleString()}`;
+
+      // Update charts
+      createStatCharts();
+      createPerformanceChart();
+
+      // Update recent trades table
+      updateRecentTradesTable();
+    }
+
+    // Update recent trades table
+    function updateRecentTradesTable() {
+      const tableBody = elements.recentTradesTableBody;
+      const emptyState = elements.emptyTradesState;
+      
+      if (trades.length === 0) {
+        document.getElementById("recentTradesTable").style.display = "none";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      document.getElementById("recentTradesTable").style.display = "table";
+      emptyState.style.display = "none";
+
+      tableBody.innerHTML = "";
+      
+      const recentTrades = trades.slice(0, 10);
+      
+      recentTrades.forEach((trade, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td data-label="Date">${new Date(trade.date).toLocaleDateString()}</td>
+          <td data-label="Symbol">
+            <div class="trade-symbol-horizontal">
+              ${trade.symbol}
+              <span class="expand-indicator-horizontal">▼</span>
+            </div>
+          </td>
+          <td data-label="P&L" class="${trade.pnl >= 0 ? 'profit-value' : 'loss-value'}">
+            ${CONFIG.currency}${trade.pnl.toLocaleString()}
+          </td>
+          <td data-label="Win Rate">${trade.type}</td>
+          <td data-label="Status" class="${trade.pnl >= 0 ? 'profit-value' : 'loss-value'}">
+            ${trade.pnl >= 0 ? 'Win' : 'Loss'}
+          </td>
+        `;
+
+        const detailRow = document.createElement("tr");
+        detailRow.className = "trade-description-row-horizontal";
+        detailRow.innerHTML = `
+          <td colspan="5" class="trade-description-cell-horizontal">
+            <div class="trade-details-horizontal">
+              <div class="trade-detail-item-horizontal">
+                <div class="trade-detail-label-horizontal">Entry Price</div>
+                <div class="trade-detail-value-horizontal">${CONFIG.currency}${trade.entryPrice.toFixed(2)}</div>
+              </div>
+              <div class="trade-detail-item-horizontal">
+                <div class="trade-detail-label-horizontal">Exit Price</div>
+                <div class="trade-detail-value-horizontal">${CONFIG.currency}${trade.exitPrice.toFixed(2)}</div>
+              </div>
+              <div class="trade-detail-item-horizontal">
+                <div class="trade-detail-label-horizontal">Quantity</div>
+                <div class="trade-detail-value-horizontal">${trade.quantity}</div>
+              </div>
+              ${trade.stopLoss ? `
+                <div class="trade-detail-item-horizontal">
+                  <div class="trade-detail-label-horizontal">Stop Loss</div>
+                  <div class="trade-detail-value-horizontal">${CONFIG.currency}${trade.stopLoss.toFixed(2)}</div>
+                </div>
+              ` : ''}
+              ${trade.takeProfit ? `
+                <div class="trade-detail-item-horizontal">
+                  <div class="trade-detail-label-horizontal">Take Profit</div>
+                  <div class="trade-detail-value-horizontal">${CONFIG.currency}${trade.takeProfit.toFixed(2)}</div>
+                </div>
+              ` : ''}
+            </div>
+            ${trade.strategy ? `
+              <div class="trade-notes-horizontal">
+                <strong>Strategy/Notes:</strong><br>
+                ${trade.strategy}
+              </div>
+            ` : ''}
+          </td>
+        `;
+
+        row.addEventListener("click", () => {
+          row.classList.toggle("expanded");
+        });
+
+        tableBody.appendChild(row);
+        tableBody.appendChild(detailRow);
+      });
+    }
+
+    // Form handlers
+    function calculatePnL() {
+      const entryPrice = parseFloat(elements.entryPrice.value) || 0;
+      const exitPrice = parseFloat(elements.exitPrice.value) || 0;
+      const quantity = parseInt(elements.tradeQuantity.value) || 0;
+      const tradeType = elements.tradeType.value;
+
+      if (entryPrice && exitPrice && quantity && tradeType) {
+        let pnl;
+        if (tradeType === "Long") {
+          pnl = (exitPrice - entryPrice) * quantity;
+        } else {
+          pnl = (entryPrice - exitPrice) * quantity;
+        }
+        document.getElementById("tradePnl").value = pnl.toFixed(2);
+      }
+    }
+
+    // Event listeners
+    [elements.entryPrice, elements.exitPrice, elements.tradeQuantity, elements.tradeType].forEach(element => {
+      if (element) {
+        element.addEventListener("input", calculatePnL);
+      }
+    });
+
+    // Trade form submission
+    document.getElementById("tradeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const tradeData = {
+        date: formData.get("date"),
+        symbol: formData.get("symbol").toUpperCase(),
+        type: formData.get("type"),
+        quantity: parseInt(formData.get("quantity")),
+        entryPrice: parseFloat(formData.get("entryPrice")),
+        exitPrice: parseFloat(formData.get("exitPrice")),
+        stopLoss: formData.get("stopLoss") ? parseFloat(formData.get("stopLoss")) : null,
+        takeProfit: formData.get("takeProfit") ? parseFloat(formData.get("takeProfit")) : null,
+        pnl: parseFloat(formData.get("pnl")),
+        strategy: formData.get("strategy") || "",
+        status: parseFloat(formData.get("pnl")) >= 0 ? "Win" : "Loss"
+      };
+      
+      try {
+        await saveTrade(tradeData);
+        document.getElementById("tradeFormModal").classList.remove("show");
+        e.target.reset();
+      } catch (error) {
+        alert("Error saving trade: " + error.message);
+      }
+    });
+
+    // Settings form submission
+    document.getElementById("settingsForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const settings = {
+        initialCapital: parseFloat(formData.get("initialCapital")),
+        startDate: formData.get("startDate"),
+        currency: formData.get("currency")
+      };
+
+      // Update currency symbol
+      const currencySymbols = { INR: '₹', USD: '$', EUR: '€' };
+      CONFIG.currency = currencySymbols[settings.currency];
+      
+      try {
+        await saveSettings(settings);
+        document.getElementById("settingsModal").classList.remove("show");
+        updateDashboard();
+      } catch (error) {
+        alert("Error saving settings: " + error.message);
+      }
+    });
+
+    // Modal controls
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+      document.getElementById("initialCapital").value = CONFIG.initialCapital;
+      document.getElementById("startDate").value = CONFIG.startDate;
+      document.getElementById("currency").value = CONFIG.currency === '₹' ? 'INR' : CONFIG.currency === '$' ? 'USD' : 'EUR';
+      document.getElementById("settingsModal").classList.add("show");
+    });
+
+    document.getElementById("closeSettingsBtn").addEventListener("click", () => {
+      document.getElementById("settingsModal").classList.remove("show");
+    });
+
+    // Trade form modal controls
+    document.getElementById("addTradeBtn").addEventListener("click", () => {
+      document.getElementById("tradeDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("tradeFormModal").classList.add("show");
+    });
+
+    document.getElementById("addTradeNav").addEventListener("click", () => {
+      document.getElementById("tradeDate").value = new Date().toISOString().split('T')[0];
+      document.getElementById("tradeFormModal").classList.add("show");
+    });
+
+    document.getElementById("closeTradeFormBtn").addEventListener("click", () => {
+      document.getElementById("tradeFormModal").classList.remove("show");
+    });
+
+    // Export CSV functionality
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      if (trades.length === 0) {
+        alert("No trades to export!");
+        return;
+      }
+
+      const headers = ["Date", "Symbol", "Type", "Quantity", "Entry Price", "Exit Price", "Stop Loss", "Take Profit", "P&L", "Strategy"];
+      const csvContent = [
+        headers.join(","),
+        ...trades.map(trade => [
+          trade.date,
+          trade.symbol,
+          trade.type,
+          trade.quantity,
+          trade.entryPrice,
+          trade.exitPrice,
+          trade.stopLoss || "",
+          trade.takeProfit || "",
+          trade.pnl,
+          `"${trade.strategy || ""}"`
+        ].join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trade-journal-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+
+    // Mobile menu toggle
+    document.getElementById("hamburgerMenu").addEventListener("click", () => {
+      elements.sidebar.classList.toggle("open");
+      elements.sidebarOverlay.classList.toggle("show");
+    });
+
+    document.getElementById("sidebarOverlay").addEventListener("click", () => {
+      elements.sidebar.classList.remove("open");
+      elements.sidebarOverlay.classList.remove("show");
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener("click", (e) => {
+      if (e.target === document.getElementById("settingsModal")) {
+        document.getElementById("settingsModal").classList.remove("show");
+      }
+      if (e.target === document.getElementById("tradeFormModal")) {
+        document.getElementById("tradeFormModal").classList.remove("show");
+      }
+    });
+
+    // Initialize dashboard
+    function initializeDashboard() {
+      elements.loadingState.classList.remove("show");
+      updateDashboard();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      const startDateInput = document.getElementById('startDate');
+      if (startDateInput && !startDateInput.value) {
+        startDateInput.value = today;
+      }
+    });
+  </script>
+</body>
+</html>
